@@ -1,5 +1,7 @@
 #pragma once
 
+#include "nw4r/lyt/lyt_texMap.hh"
+
 extern "C" {
 #include <revolution.h>
 }
@@ -7,6 +9,9 @@ extern "C" {
 namespace nw4r::lyt {
 
 class Material {
+public:
+    TexMap *getTexMapAry();
+
 private:
     u8 _00[0x10 - 0x00];
 
