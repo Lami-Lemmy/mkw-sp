@@ -33,7 +33,6 @@ public:
 
     ScrollBar();
     ~ScrollBar() override;
-    void initSelf() override;
     void calcSelf() override;
 
     void load(u32 count, u32 chosen, const char *dir, const char *file, const char *variant,
@@ -49,6 +48,7 @@ private:
 
     void onSelect(u32 localPlayerId);
     void onDeselect(u32 localPlayerId);
+    void onFront(u32 localPlayerId);
     void onRight(u32 localPlayerId);
     void onLeft(u32 localPlayerId);
 
@@ -58,6 +58,7 @@ private:
     ControlInputManager m_inputManager;
     H<ControlInputManager> m_onSelect{ this, &ScrollBar::onSelect };
     H<ControlInputManager> m_onDeselect{ this, &ScrollBar::onDeselect };
+    H<ControlInputManager> m_onFront{ this, &ScrollBar::onFront };
     H<ControlInputManager> m_onRight{ this, &ScrollBar::onRight };
     H<ControlInputManager> m_onLeft{ this, &ScrollBar::onLeft };
     IHandler *m_changeHandler = nullptr;

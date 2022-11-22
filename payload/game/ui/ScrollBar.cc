@@ -11,11 +11,17 @@ namespace GroupId {
 enum {
     Loop = 0,
     Select = 1,
-    SelectIn = 2,
-    OK = 3,
 };
 
 } // namespace GroupId
+
+namespace AnimId::Loop {
+
+enum {
+    Loop = 0,
+};
+
+} // namespace AnimId::Loop
 
 namespace AnimId::Select {
 
@@ -31,11 +37,6 @@ enum {
 ScrollBar::ScrollBar() = default;
 
 ScrollBar::~ScrollBar() = default;
-
-void ScrollBar::initSelf() {
-    m_animator.setAnimationInactive(2, 1, 0.0f);
-    m_animator.setAnimationInactive(3, 1, 0.0f);
-}
 
 void ScrollBar::calcSelf() {
     bool loopActive = m_animator.getAnimation(GroupId::Select) != AnimId::Select::Free;
@@ -93,8 +94,6 @@ void ScrollBar::load(u32 count, u32 chosen, const char *dir, const char *file, c
     const char *groups[] = {
         "Loop", "Loop", nullptr,
         "Select", "Free", "FreeToSelect", "Select", "SelectToFree", nullptr,
-        "SelectIn", "SelectIn", "SelectStop", nullptr,
-        "OK", "OK", "OKStop", nullptr,
         nullptr,
     };
     LayoutUIControl::load(dir, file, variant, groups);
@@ -104,6 +103,7 @@ void ScrollBar::load(u32 count, u32 chosen, const char *dir, const char *file, c
     m_inputManager.m_pane.selectHandler = &m_onSelect;
     m_inputManager.m_pane.deselectHandler = &m_onDeselect;
     m_inputManager.m_playerFlags = playerFlags;
+    m_inputManager.setHandler(MenuInputManager::InputId::Front, &m_onFront, false);
     m_inputManager.setHandler(MenuInputManager::InputId::Right, &m_onRight, false);
     m_inputManager.setHandler(MenuInputManager::InputId::Left, &m_onLeft, false);
     m_inputManager.init(0, isMultiPlayer, pointerOnly);
@@ -120,8 +120,8 @@ void ScrollBar::load(u32 count, u32 chosen, const char *dir, const char *file, c
     m_thumbPane = m_mainLayout.findPaneByName("thumb");
     assert(m_thumbPane);
 
-    m_animator.setAnimationInactive(0, 0, 0.0f);
-    m_animator.setAnimationInactive(1, 0, 0.0f);
+    m_animator.setAnimationInactive(GroupId::Loop, AnimId::Loop::Loop, 0.0f);
+    m_animator.setAnimationInactive(GroupId::Select, AnimId::Select::Free, 0.0f);
 
     m_count = count;
     m_chosen = chosen;
@@ -162,6 +162,34 @@ void ScrollBar::onDeselect([[maybe_unused]] u32 localPlayerId) {
     }
 
     m_sequence.reset();
+}
+
+void ScrollBar::onFront([[maybe_unused]] u32 localPlayerId) {
+    auto *parentInputManager = getPage()->inputManager()->downcast<MultiControlInputManager>();
+    assert(parentInputManager);
+    if (!parentInputManager->isPointer(localPlayerId)) {
+        return;
+    }
+    auto pointerPos = parentInputManager->pointerPos(localPlayerId);
+    f32 width = m_colorBasePane->m_width;
+    f32 height = m_colorBasePane->m_height;
+    Vec3 localPanePos0{-0.5f * (width - 4.0f), -0.5f * (height + 4.0f), 0.0f};
+    Vec3 globalPanePos0;
+    PSMTXMultVec(m_colorBasePane->m_globalMtx, &localPanePos0, &globalPanePos0);
+    Vec3 localPanePos1{0.5f * (width - 4.0f), 0.5f * (height + 4.0f), 0.0f};
+    Vec3 globalPanePos1;
+    PSMTXMultVec(m_colorBasePane->m_globalMtx, &localPanePos1, &globalPanePos1);
+    if (pointerPos.y >= globalPanePos0.y && pointerPos.y < globalPanePos1.y) {
+        f32 t = (pointerPos.x - globalPanePos0.x) / (globalPanePos1.x - globalPanePos0.x);
+        s32 chosen = t * m_count;
+        if (chosen >= 0 && static_cast<u32>(chosen) < m_count &&
+                static_cast<u32>(chosen) != m_chosen) {
+            m_chosen = chosen;
+            if (m_changeHandler) {
+                m_changeHandler->handle(this, m_sequence->localPlayerId, m_chosen);
+            }
+        }
+    }
 }
 
 void ScrollBar::onRight([[maybe_unused]] u32 localPlayerId) {}
