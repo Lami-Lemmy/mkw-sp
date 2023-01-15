@@ -19,8 +19,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - name: Install deps
-        run: sudo apt install llvm-dev libclang-dev clang
       - uses: actions-rs/cargo@v1
         with:
           use-cross: false
