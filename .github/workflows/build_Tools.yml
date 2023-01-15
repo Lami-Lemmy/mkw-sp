@@ -20,6 +20,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install deps
-        run: curl https://sh.rustup.rs -sSf | sh -y
+        run: |
+          curl https://sh.rustup.rs -sSf -o rustup.sh
+          sh rustup.sh -y
       - name: Build ${{ matrix.tool }}
         run: cargo b --manifest-path tools/${{ matrix.tool }}/Cargo.toml --release --target=${{ matrix.target }}
