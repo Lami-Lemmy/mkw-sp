@@ -1,6 +1,6 @@
 on: [push, pull_request]
 
-name: Cross-compile
+name: Build Tools
 
 jobs:
   build:
@@ -11,7 +11,6 @@ jobs:
         toolpath:
           - netstorageserver
           - portfinder
-          - sign
           - updateserver
         target:
           - x86_64-pc-windows-gnu
