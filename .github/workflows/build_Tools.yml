@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tool:
+        toolpath:
           - netstorageserver
           - portfinder
           - sign
@@ -19,9 +19,15 @@ jobs:
         
     steps:
       - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
       - name: Install deps
-        run: |
-          curl https://sh.rustup.rs -sSf -o rustup.sh
-          sh rustup.sh -y
-      - name: Build ${{ matrix.tool }}
-        run: cargo b --manifest-path tools/${{ matrix.tool }}/Cargo.toml --release --target=${{ matrix.target }}
+        run: sudo apt install llvm-dev libclang-dev clang
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --manifest-path tools/${{ matrix.toolpath }}/Cargo.toml --release --target=${{ matrix.target }} 
