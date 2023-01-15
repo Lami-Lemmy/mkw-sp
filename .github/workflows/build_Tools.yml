@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        toolpath:
+        tool:
           - netstorageserver
           - portfinder
           - updateserver
@@ -29,4 +29,9 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: --manifest-path tools/${{ matrix.toolpath }}/Cargo.toml --release --target=${{ matrix.target }} 
+          args: --manifest-path tools/${{ matrix.tool }}/Cargo.toml --release --target=${{ matrix.target }}
+      - name: Upload result
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.tool }}_${{ matrix.target }}
+          path: tools/${{ matrix.tool }}/target/${{ matrix.target }}/release/${{ matrix.tool }}*
