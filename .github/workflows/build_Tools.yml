@@ -16,7 +16,8 @@ jobs:
         target:
           - x86_64-pc-windows-gnu
           - x86_64-unknown-linux-gnu
-
+    env:
+      LIBCLANG_PATH: /usr/local/lib
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
