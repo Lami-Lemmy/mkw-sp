@@ -5,7 +5,6 @@ name: Build Tools
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -14,27 +13,21 @@ jobs:
           - portfinder
           - updateserver
           - sign
-        target:
-          - x86_64-pc-windows-gnu
-          - x86_64-unknown-linux-gnu
-    env:
-      LIBCLANG_PATH: /usr/local/lib
+        os:
+          - windows-latest
+          - ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: ${{ matrix.target }}
-          override: true
       - name: Install deps
         run: sudo apt install llvm-dev libclang-dev clang
       - uses: actions-rs/cargo@v1
         with:
-          use-cross: true
+          use-cross: false
           command: build
-          args: --manifest-path tools/${{ matrix.tool }}/Cargo.toml --release --target=${{ matrix.target }}
+          args: --manifest-path tools/${{ matrix.tool }}/Cargo.toml --release
       - name: Upload result
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.tool }}_${{ matrix.target }}
-          path: tools/${{ matrix.tool }}/target/${{ matrix.target }}/release/${{ matrix.tool }}*
+          name: ${{ matrix.tool }}_${{ matrix.os }}
+          path: tools/${{ matrix.tool }}/target/release/${{ matrix.tool }}*
